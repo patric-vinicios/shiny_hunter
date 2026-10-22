@@ -44,10 +44,10 @@ defmodule ShinyHunterWeb.HuntLive do
         iv_fields: @iv_fields,
         rom_status: Encounters.status(),
         encounter_options: [
-          {"Sem mapa (só slot)", ""}
+          {"No map (slot only)", ""}
           | Enum.map(Encounters.list(), &{&1.label, to_string(&1.index)})
         ],
-        nature_options: [{"Qualquer", ""} | Enum.with_index(Wild.natures(), &{&1, to_string(&2)})]
+        nature_options: [{"Any", ""} | Enum.with_index(Wild.natures(), &{&1, to_string(&2)})]
       )
       |> assign_form(input)
       |> stream(:matches, Enum.map(matches, &row(&1, stats)))
@@ -75,19 +75,19 @@ defmodule ShinyHunterWeb.HuntLive do
       species_options:
         if(encounter,
           do: [
-            {"Qualquer", ""} | Enum.map(Encounters.species(encounter, kind), &species_option/1)
+            {"Any", ""} | Enum.map(Encounters.species(encounter, kind), &species_option/1)
           ],
           else: []
         ),
       slot_options: [
-        {"Qualquer", ""}
+        {"Any", ""}
         | Enum.map(Wild.slots(Encounters.wild_area(kind)), &{"Slot #{&1}", to_string(&1)})
       ]
     )
   end
 
   defp species_option(s) do
-    levels = if s.min == s.max, do: "Nv. #{s.min}", else: "Nv. #{s.min}–#{s.max}"
+    levels = if s.min == s.max, do: "Lv. #{s.min}", else: "Lv. #{s.min}–#{s.max}"
     {"#{s.name} (#{levels}, #{s.chance}%)", to_string(s.species)}
   end
 
@@ -119,11 +119,11 @@ defmodule ShinyHunterWeb.HuntLive do
          put_flash(
            socket,
            :info,
-           "Worker #{inspect(pid)} derrubado. O bloco dele voltou pra fila."
+           "Worker #{inspect(pid)} killed. Its block went back to the queue."
          )}
 
       :none ->
-        {:noreply, put_flash(socket, :error, "Nenhum worker rodando.")}
+        {:noreply, put_flash(socket, :error, "No worker running.")}
     end
   end
 
@@ -186,10 +186,10 @@ defmodule ShinyHunterWeb.HuntLive do
   defp int(input, key, range) do
     case Integer.parse(String.trim(input[key] || "")) do
       {n, ""} ->
-        if n in range, do: {:ok, n}, else: {:error, "#{key} fora do intervalo #{inspect(range)}"}
+        if n in range, do: {:ok, n}, else: {:error, "#{key} out of range #{inspect(range)}"}
 
       _ ->
-        {:error, "#{key} precisa ser um número inteiro"}
+        {:error, "#{key} must be an integer"}
     end
   end
 
@@ -220,7 +220,7 @@ defmodule ShinyHunterWeb.HuntLive do
     with {n, ""} <- Integer.parse(value), %{} = encounter <- Encounters.get(n) do
       {:ok, encounter}
     else
-      _ -> {:error, "mapa inválido"}
+      _ -> {:error, "invalid map"}
     end
   end
 
@@ -228,7 +228,7 @@ defmodule ShinyHunterWeb.HuntLive do
 
   defp parse_kind(value, encounter) do
     case Enum.find(Encounters.kinds_for(encounter), &(Atom.to_string(&1) == value)) do
-      nil -> {:error, "tipo de encontro inválido para este mapa"}
+      nil -> {:error, "invalid encounter type for this map"}
       kind -> {:ok, kind}
     end
   end
@@ -245,10 +245,10 @@ defmodule ShinyHunterWeb.HuntLive do
           {n, ""} ->
             if n in Wild.slots(Encounters.wild_area(kind)),
               do: {:ok, 1 <<< n},
-              else: {:error, "slot fora da área"}
+              else: {:error, "slot outside the area"}
 
           _ ->
-            {:error, "slot inválido"}
+            {:error, "invalid slot"}
         end
     end
   end
@@ -263,7 +263,7 @@ defmodule ShinyHunterWeb.HuntLive do
       end
 
     case chosen do
-      [] -> {:error, "nenhuma espécie suportada nesse encontro (Unown usa outra rotina)"}
+      [] -> {:error, "no supported species in this encounter (Unown uses another routine)"}
       list -> {:ok, list |> Enum.flat_map(& &1.slots) |> Enum.reduce(0, &(&2 ||| 1 <<< &1))}
     end
   end
@@ -274,7 +274,7 @@ defmodule ShinyHunterWeb.HuntLive do
   defp nature_mask(value) do
     case Integer.parse(value) do
       {n, ""} when n in 0..24 -> {:ok, 1 <<< n}
-      _ -> {:error, "natureza inválida"}
+      _ -> {:error, "invalid nature"}
     end
   end
 
@@ -283,19 +283,19 @@ defmodule ShinyHunterWeb.HuntLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <section class="space-y-1">
-        <h1 class="text-2xl font-bold">Pokémon FireRed: caçador de shiny</h1>
+        <h1 class="text-2xl font-bold">Pokémon FireRed shiny hunter</h1>
         <p class="text-sm opacity-70">
-          RNG e geração de Pokémon selvagem reconstruídos da ROM com o REA.
-          Cada bloco de sementes vira um processo da BEAM, em paralelo em todos os núcleos.
+          RNG and wild Pokémon generation rebuilt from the ROM with REA.
+          Each block of seeds runs as a BEAM process, in parallel on every core.
         </p>
       </section>
 
       <p :if={@rom_status == :not_configured} id="rom-status" class="text-xs opacity-70">
-        Sem ROM configurada: a busca funciona por número de slot. Defina <code>FIRERED_ROM</code>
-        com o caminho da ROM FireRed (USA) v1.0 para escolher mapa e espécie.
+        No ROM configured: the search works by slot number. Set <code>FIRERED_ROM</code>
+        to the path of a FireRed (USA) v1.0 ROM to pick map and species.
       </p>
       <p :if={match?({:error, _}, @rom_status)} id="rom-status" class="text-xs text-error">
-        Não foi possível ler as tabelas de encontro da ROM: {inspect(elem(@rom_status, 1))}
+        Could not read the encounter tables from the ROM: {inspect(elem(@rom_status, 1))}
       </p>
 
       <.form
@@ -309,46 +309,46 @@ defmodule ShinyHunterWeb.HuntLive do
           <.input field={@form[:tid]} label="TID" />
           <.input field={@form[:sid]} label="SID" />
           <.input
-            :if={@encounter_options != [{"Sem mapa (só slot)", ""}]}
+            :if={@encounter_options != [{"No map (slot only)", ""}]}
             field={@form[:encounter]}
             type="select"
-            label="Mapa"
+            label="Map"
             options={@encounter_options}
           />
-          <.input field={@form[:kind]} type="select" label="Encontro" options={@kind_options} />
+          <.input field={@form[:kind]} type="select" label="Encounter" options={@kind_options} />
           <.input
             :if={@encounter}
             field={@form[:species]}
             type="select"
-            label="Espécie"
+            label="Species"
             options={@species_options}
           />
           <.input
             :if={!@encounter}
             field={@form[:slot]}
             type="select"
-            label="Slot da tabela"
+            label="Table slot"
             options={@slot_options}
           />
-          <.input field={@form[:nature]} type="select" label="Natureza" options={@nature_options} />
-          <.input field={@form[:workers]} type="number" label={"Workers (núcleos: #{@schedulers})"} />
-          <.input field={@form[:seed_from]} label="Semente inicial de" />
-          <.input field={@form[:seed_to]} label="até" />
-          <.input field={@form[:adv_from]} label="Avanço de" />
-          <.input field={@form[:adv_to]} label="até" />
+          <.input field={@form[:nature]} type="select" label="Nature" options={@nature_options} />
+          <.input field={@form[:workers]} type="number" label={"Workers (cores: #{@schedulers})"} />
+          <.input field={@form[:seed_from]} label="Initial seed from" />
+          <.input field={@form[:seed_to]} label="to" />
+          <.input field={@form[:adv_from]} label="Advance from" />
+          <.input field={@form[:adv_to]} label="to" />
         </div>
         <div class="grid grid-cols-3 gap-x-4 sm:grid-cols-6">
           <.input
             :for={{key, label} <- Enum.zip(@iv_fields, ~w(HP Atk Def SpA SpD Spe))}
             field={@form[key]}
             type="number"
-            label={"#{label} mín."}
+            label={"Min #{label}"}
           />
         </div>
         <div class="flex flex-wrap items-center gap-3">
-          <.input field={@form[:shiny_only]} type="checkbox" label="Só shiny" />
-          <.button id="start-hunt" variant="primary" phx-disable-with="Iniciando...">
-            <.icon name="hero-play" class="size-4" /> Caçar
+          <.input field={@form[:shiny_only]} type="checkbox" label="Shiny only" />
+          <.button id="start-hunt" variant="primary" phx-disable-with="Starting...">
+            <.icon name="hero-play" class="size-4" /> Hunt
           </.button>
           <.button
             id="cancel-hunt"
@@ -356,7 +356,7 @@ defmodule ShinyHunterWeb.HuntLive do
             phx-click="cancel"
             disabled={@stats.status != :running}
           >
-            Cancelar
+            Cancel
           </.button>
           <.button
             id="kill-worker"
@@ -364,16 +364,18 @@ defmodule ShinyHunterWeb.HuntLive do
             phx-click="kill"
             disabled={@stats.status != :running}
           >
-            <.icon name="hero-bolt" class="size-4" /> Derrubar um worker
+            <.icon name="hero-bolt" class="size-4" /> Kill a worker
           </.button>
         </div>
       </.form>
 
       <section id="hunt-stats" class="card bg-base-200 p-4 space-y-3">
         <div class="flex flex-wrap items-baseline justify-between gap-2">
-          <span class={["badge", status_class(@stats.status)]}>{status_label(@stats.status)}</span>
+          <span id="hunt-status" class={["badge", status_class(@stats.status)]}>{status_label(
+            @stats.status
+          )}</span>
           <span class="font-mono text-sm">
-            {fmt(@stats.done)} / {fmt(@stats.total)} Pokémon gerados
+            {fmt(@stats.done)} / {fmt(@stats.total)} Pokémon generated
           </span>
         </div>
         <progress
@@ -383,21 +385,21 @@ defmodule ShinyHunterWeb.HuntLive do
         />
         <div class="stats stats-vertical w-full sm:stats-horizontal">
           <div class="stat">
-            <div class="stat-title">Pokémon por segundo</div>
+            <div class="stat-title">Pokémon per second</div>
             <div class="stat-value text-2xl">{fmt(@stats.rate)}</div>
           </div>
           <div class="stat">
-            <div class="stat-title">Tempo</div>
+            <div class="stat-title">Time</div>
             <div class="stat-value text-2xl">{seconds(@stats.elapsed_ms)}</div>
           </div>
           <div class="stat">
-            <div class="stat-title">Encontrados</div>
+            <div class="stat-title">Found</div>
             <div class="stat-value text-2xl">{fmt(@stats.match_count)}</div>
           </div>
           <div class="stat">
-            <div class="stat-title">Workers derrubados</div>
+            <div class="stat-title">Workers killed</div>
             <div class="stat-value text-2xl">{@stats.crashes}</div>
-            <div class="stat-desc">blocos refeitos sem perder nada</div>
+            <div class="stat-desc">blocks redone without losing anything</div>
           </div>
         </div>
 
@@ -409,29 +411,29 @@ defmodule ShinyHunterWeb.HuntLive do
           <div :for={w <- @stats.workers} class="rounded-box bg-base-100 p-2 text-xs">
             <div class="flex justify-between font-mono">
               <span>{w.pid}</span>
-              <span class="opacity-60">sementes {elem(w.chunk, 0)}–{elem(w.chunk, 1)}</span>
+              <span class="opacity-60">seeds {elem(w.chunk, 0)}–{elem(w.chunk, 1)}</span>
             </div>
             <progress class="progress progress-success w-full" value={w.done} max={max(w.total, 1)} />
           </div>
         </div>
         <p :if={@stats.status == :running} class="text-xs opacity-60">
-          {length(@stats.workers)} workers ativos, {@stats.queued} blocos na fila
+          {length(@stats.workers)} active workers, {@stats.queued} blocks queued
         </p>
       </section>
 
       <section class="space-y-2">
-        <h2 class="text-lg font-semibold">Resultados</h2>
+        <h2 class="text-lg font-semibold">Results</h2>
         <div class="overflow-x-auto">
           <table class="table table-sm">
             <thead>
               <tr>
-                <th>Semente</th>
+                <th>Seed</th>
                 <th>Slot</th>
-                <th>Espécie</th>
-                <th>Nível</th>
-                <th>Avanço</th>
+                <th>Species</th>
+                <th>Level</th>
+                <th>Advance</th>
                 <th>PID</th>
-                <th>Natureza</th>
+                <th>Nature</th>
                 <th>HP</th>
                 <th>Atk</th>
                 <th>Def</th>
@@ -462,16 +464,18 @@ defmodule ShinyHunterWeb.HuntLive do
             </tbody>
           </table>
         </div>
-        <p class="text-xs opacity-60">Mostra até 500 resultados; o contador acima inclui todos.</p>
+        <p class="text-xs opacity-60">
+          Shows up to 500 results; the counter above includes all of them.
+        </p>
       </section>
     </Layouts.app>
     """
   end
 
-  defp status_label(:idle), do: "parado"
-  defp status_label(:running), do: "caçando"
-  defp status_label(:done), do: "concluído"
-  defp status_label(:cancelled), do: "cancelado"
+  defp status_label(:idle), do: "idle"
+  defp status_label(:running), do: "hunting"
+  defp status_label(:done), do: "done"
+  defp status_label(:cancelled), do: "cancelled"
 
   defp status_class(:running), do: "badge-warning"
   defp status_class(:done), do: "badge-success"
@@ -485,7 +489,7 @@ defmodule ShinyHunterWeb.HuntLive do
     n
     |> Integer.to_string()
     |> String.reverse()
-    |> String.replace(~r/(\d{3})(?=\d)/, "\\1.")
+    |> String.replace(~r/(\d{3})(?=\d)/, "\\1,")
     |> String.reverse()
   end
 end

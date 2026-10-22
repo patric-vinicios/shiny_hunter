@@ -20,7 +20,7 @@ defmodule ShinyHunterWeb.HuntLiveTest do
     assert_receive {:tick, %{status: :done, match_count: count}}, 30_000
     assert count > 0
     # The LiveView received the same broadcasts before the test process did.
-    assert render(view) =~ "concluído"
+    assert has_element?(view, "#hunt-status", "done")
     assert has_element?(view, "#matches tr")
   end
 
@@ -30,7 +30,7 @@ defmodule ShinyHunterWeb.HuntLiveTest do
 
     html = view |> form("#hunt-form", hunt: %{seed_to: "70000"}) |> render_submit()
 
-    assert html =~ "seed_to fora do intervalo"
+    assert html =~ "seed_to out of range"
     assert ShinyHunter.Hunt.snapshot() == before
   end
 
@@ -49,7 +49,7 @@ defmodule ShinyHunterWeb.HuntLiveTest do
       |> form("#hunt-form", hunt: %{kind: "old_rod"})
       |> render_submit(%{hunt: %{slot: "7"}})
 
-    assert html =~ "slot fora da área"
+    assert html =~ "slot outside the area"
     assert ShinyHunter.Hunt.snapshot() == before
   end
 

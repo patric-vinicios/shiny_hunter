@@ -31,7 +31,7 @@ The search runs in parallel on every CPU core: about **5.6 million Pokémon per 
 - Reproduces, bit for bit, how FireRed creates a wild Pokémon: encounter slot, level, nature, PID, IVs and shininess.
 - Filters by shiny, species (or slot), nature and minimum IVs.
 - Splits the work into blocks of seeds, one BEAM process per block, and shows each worker's progress live in the browser.
-- Survives worker crashes: the **Derrubar um worker** (kill a worker) button kills a process mid-search, its block goes back to the queue and no result is lost or counted twice.
+- Survives worker crashes: the **Kill a worker** button kills a process mid-search, its block goes back to the queue and no result is lost or counted twice.
 - With a ROM configured, reads the game's 132 encounter tables so you can pick map and species by name.
 
 ## Requirements
@@ -95,7 +95,7 @@ Open http://localhost:4000.
 
 The app works **without a ROM**. In that mode you pick the encounter table *slot number* instead of a species, and the results table shows no species or level.
 
-With a ROM, the **Mapa** (map) and **Espécie** (species) fields appear and each result gets its level.
+With a ROM, the **Map** and **Species** fields appear and each result gets its level.
 
 - Only **FireRed (USA) v1.0** is accepted, SHA-1 `41cb23d8dccc8ebd7c649cd8fbb58eeace6e2fdc`. Every address the app reads comes from that version; any other ROM is rejected.
 - The ROM is **not part of this repository** and must never be committed. The legitimate way to get one is dumping your own cartridge (for example with a GBxCart RW).
@@ -110,16 +110,14 @@ sha1sum firered.gba
 ## Quick start
 
 1. Enter your save's **TID** and **SID**.
-2. Pick the **Mapa** (map), the **Encontro** (encounter type: grass, surf, Rock Smash or a rod) and optionally the **Espécie** (species). Without a ROM, pick the **Slot da tabela** (table slot).
-3. Optionally filter by **Natureza** (nature) and minimum IVs. Keep **Só shiny** (shiny only) checked to hunt shinies.
+2. Pick the **Map**, the **Encounter** type (grass, surf, Rock Smash or a rod) and optionally the **Species**. Without a ROM, pick the **Table slot**.
+3. Optionally filter by **Nature** and minimum IVs. Keep **Shiny only** checked to hunt shinies.
 4. Set the number of **Workers**. The default is the number of CPU cores.
-5. Click **Caçar** (hunt). Results show up while the search runs.
+5. Click **Hunt**. Results show up while the search runs.
 
-A quick way to see the parallelism: run a hunt on Route 1 with `Workers = 1`, note the Pokémon per second, then run it again with the default. During the search, click **Derrubar um worker** a few times and check that the final total does not change.
+A quick way to see the parallelism: run a hunt on Route 1 with `Workers = 1`, note the Pokémon per second, then run it again with the default. During the search, click **Kill a worker** a few times and check that the final total does not change.
 
 ## Form fields
-
-The UI is in Portuguese. Each field is listed with its on-screen label and an English translation.
 
 ### Trainer
 
@@ -134,10 +132,10 @@ The game's shiny check is `TID xor SID xor PID_high xor PID_low < 8`, about 1 in
 
 | Field | Shown when | Purpose |
 | --- | --- | --- |
-| **Mapa** (map) | A ROM is configured | Where the encounter happens, with the name read from the ROM. Maps with several floors are numbered (`MT. MOON · 2`); alternate headers of the same map show as `variante N`. **Sem mapa (só slot)** (no map, slot only) switches back to slot search. |
-| **Encontro** (encounter) | Always | The encounter type. With a map, only the types that map has are listed. Options: **Grama / caverna** (grass / cave), **Surf**, **Rock Smash**, **Vara velha** (Old Rod), **Vara boa** (Good Rod), **Super vara** (Super Rod). Each type has its own table and slot chances. |
-| **Espécie** (species) | A map is selected | The Pokémon to find, with its level range and total chance (`PIKACHU (Nv. 3–5, 5%)`). A species can fill several slots; all of them are searched. **Qualquer** (any) accepts every species of the encounter. |
-| **Slot da tabela** (table slot) | No map is selected | The encounter table position that must come out. **Qualquer** (any) accepts every slot of the chosen type. |
+| **Map** | A ROM is configured | Where the encounter happens, with the name read from the ROM. Maps with several floors are numbered (`MT. MOON · 2`); alternate headers of the same map show as `variant N`. **No map (slot only)** switches back to slot search. |
+| **Encounter** | Always | The encounter type. With a map, only the types that map has are listed. Options: **Grass / cave**, **Surf**, **Rock Smash**, **Old Rod**, **Good Rod**, **Super Rod**. Each type has its own table and slot chances. |
+| **Species** | A map is selected | The Pokémon to find, with its level range and total chance (`PIKACHU (Lv. 3–5, 5%)`). A species can fill several slots; all of them are searched. **Any** accepts every species of the encounter. |
+| **Table slot** | No map is selected | The encounter table position that must come out. **Any** accepts every slot of the chosen type. |
 
 Slot chances per encounter type, as the game rolls them:
 
@@ -155,16 +153,16 @@ The three rods share the map's single 10-entry fishing table; each rod uses its 
 
 | Field | Values | Purpose |
 | --- | --- | --- |
-| **Natureza** (nature) | Any, or one of the 25 | Keeps only results with that nature. |
-| **HP / Atk / Def / SpA / SpD / Spe mín.** | 0 – 31 | Minimum IV per stat. A result passes only if all six IVs are at or above their minimum. `0` means no filter. |
-| **Só shiny** (shiny only) | Checked or not | Checked: only results that are shiny for the given TID/SID. Unchecked: any Pokémon that passes the other filters (useful for IV or nature hunts; combine it with filters, or almost everything passes). |
+| **Nature** | Any, or one of the 25 | Keeps only results with that nature. |
+| **Min HP / Atk / Def / SpA / SpD / Spe** | 0 – 31 | Minimum IV per stat. A result passes only if all six IVs are at or above their minimum. `0` means no filter. |
+| **Shiny only** | Checked or not | Checked: only results that are shiny for the given TID/SID. Unchecked: any Pokémon that passes the other filters (useful for IV or nature hunts; combine it with filters, or almost everything passes). |
 
 ### Search space
 
 | Field | Values | Purpose |
 | --- | --- | --- |
-| **Semente inicial de / até** (initial seed from / to) | 0 – 65535 | Range of initial seeds to try. The default `0 – 65535` covers every seed the game can start from. |
-| **Avanço de / até** (advance from / to) | 0 – 10,000,000 | Range of RNG advances to try for each seed. Default `0 – 9999`. |
+| **Initial seed from / to** | 0 – 65535 | Range of initial seeds to try. The default `0 – 65535` covers every seed the game can start from. |
+| **Advance from / to** | 0 – 10,000,000 | Range of RNG advances to try for each seed. Default `0 – 9999`. |
 | **Workers** | 1 – 1024 | How many seed blocks are processed at the same time. The label shows the machine's core count; going above it gains nothing. Use `1` to compare with a sequential search. |
 
 The number of Pokémon generated is `(seeds) × (advances)`. The default grid is 65,536 × 10,000 = 655 million.
@@ -173,9 +171,9 @@ The number of Pokémon generated is `(seeds) × (advances)`. The default grid is
 
 | Button | What it does |
 | --- | --- |
-| **Caçar** (hunt) | Starts a new hunt. A hunt already running is replaced. |
-| **Cancelar** (cancel) | Stops the current hunt. Results found so far stay on screen. |
-| **Derrubar um worker** (kill a worker) | Kills a random worker with `Process.exit(pid, :kill)`. Its block goes back to the queue and is redone from scratch, with nothing counted twice. It exists to show fault tolerance. |
+| **Hunt** | Starts a new hunt. A hunt already running is replaced. |
+| **Cancel** | Stops the current hunt. Results found so far stay on screen. |
+| **Kill a worker** | Kills a random worker with `Process.exit(pid, :kill)`. Its block goes back to the queue and is redone from scratch, with nothing counted twice. It exists to show fault tolerance. |
 
 The hunt is global: it keeps running if you close the tab, and every open tab shows the same hunt.
 
@@ -183,26 +181,26 @@ The hunt is global: it keeps running if you close the tab, and every open tab sh
 
 | Indicator | Meaning |
 | --- | --- |
-| Status | `parado` (idle), `caçando` (hunting), `concluído` (done) or `cancelado` (cancelled). |
-| Pokémon gerados (generated) | How many of the total have been generated and checked, with a progress bar. |
-| Pokémon por segundo (per second) | Rate, measured every 200 ms. |
-| Tempo (time) | Time since the hunt started. |
-| Encontrados (found) | Total results that passed the filters, including those that do not fit in the table. |
-| Workers derrubados (workers killed) | How many times a worker died and had its block redone. |
+| Status | `idle`, `hunting`, `done` or `cancelled`. |
+| Pokémon generated | How many of the total have been generated and checked, with a progress bar. |
+| Pokémon per second | Rate, measured every 200 ms. |
+| Time | Time since the hunt started. |
+| Found | Total results that passed the filters, including those that do not fit in the table. |
+| Workers killed | How many times a worker died and had its block redone. |
 | Worker cards | One per running process: its PID, the block's seed range and its progress. |
 
 ## Results table
 
-The table shows up to 500 results; the **Encontrados** counter includes all of them.
+The table shows up to 500 results; the **Found** counter includes all of them.
 
 | Column | Meaning |
 | --- | --- |
-| **Semente** (seed) | The initial seed, in hex. |
+| **Seed** | The initial seed, in hex. |
 | **Slot** | The encounter table position rolled. |
-| **Espécie** (species) / **Nível** (level) | The Pokémon and its level, from the map's table (ROM only). |
-| **Avanço** (advance) | How many steps the RNG must have taken from the seed to the start of the encounter. |
+| **Species** / **Level** | The Pokémon and its level, from the map's table (ROM only). |
+| **Advance** | How many steps the RNG must have taken from the seed to the start of the encounter. |
 | **PID** | The personality value, in hex. A sparkle icon marks shinies. |
-| **Natureza** (nature) | `PID mod 25`. |
+| **Nature** | `PID mod 25`. |
 | **HP, Atk, Def, SpA, SpD, Spe** | The IVs. 31s are highlighted. |
 
 ## Concepts: seed, advance, slot

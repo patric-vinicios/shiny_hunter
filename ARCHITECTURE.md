@@ -125,7 +125,7 @@ The page never polls the hunt. It reads one snapshot on mount, then only receive
 Tasks are started with `async_nolink`, so they are monitored but not linked to the hunt: a task dying does not take the hunt down.
 
 - **A task crashes or is killed**: the hunt receives `:DOWN`, removes the worker, puts its block back at the front of the queue and starts a new task. The block's partial progress is discarded, so every block is counted exactly once.
-- **"Derrubar um worker"** (kill a worker) picks a random running task, kills it with `Process.exit(pid, :kill)`, demonitors it with `:flush` and requeues its block right away. Removing the worker immediately, instead of waiting for `:DOWN`, means a fast double click can never kill the same process twice or count one crash twice. This bug was caught by the tests and fixed this way.
+- **Kill a worker** picks a random running task, kills it with `Process.exit(pid, :kill)`, demonitors it with `:flush` and requeues its block right away. Removing the worker immediately, instead of waiting for `:DOWN`, means a fast double click can never kill the same process twice or count one crash twice. This bug was caught by the tests and fixed this way.
 - **Late messages** from a killed task (a reply already in the mailbox, a stray progress message) carry an unknown ref or pid and are ignored.
 
 ## Performance notes

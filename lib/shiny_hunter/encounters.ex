@@ -14,12 +14,12 @@ defmodule ShinyHunter.Encounters do
   @unown 0xC9
 
   @kinds [
-    land: {"Grama / caverna", :land, :land},
+    land: {"Grass / cave", :land, :land},
     water: {"Surf", :water, :water},
     rock_smash: {"Rock Smash", :water, :rock_smash},
-    old_rod: {"Vara velha", :old_rod, :fishing},
-    good_rod: {"Vara boa", :good_rod, :fishing},
-    super_rod: {"Super vara", :super_rod, :fishing}
+    old_rod: {"Old Rod", :old_rod, :fishing},
+    good_rod: {"Good Rod", :good_rod, :fishing},
+    super_rod: {"Super Rod", :super_rod, :fishing}
   ]
 
   @doc "Loads the tables once; called from the application start."
@@ -120,14 +120,14 @@ defmodule ShinyHunter.Encounters do
     variants = Enum.group_by(encounters, &{&1.group, &1.num}, & &1.index)
 
     Enum.map(encounters, fn e ->
-      name = e.map_name || "Mapa #{e.group}.#{e.num}"
+      name = e.map_name || "Map #{e.group}.#{e.num}"
       maps = floors[e.map_name] || []
       headers = variants[{e.group, e.num}]
 
       label =
         cond do
           length(headers) > 1 ->
-            "#{name} · variante #{Enum.find_index(headers, &(&1 == e.index))}"
+            "#{name} · variant #{Enum.find_index(headers, &(&1 == e.index))}"
 
           length(maps) > 1 ->
             "#{name} · #{Enum.find_index(maps, &(&1 == {e.group, e.num})) + 1}"

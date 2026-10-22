@@ -38,7 +38,7 @@ defmodule ShinyHunterWeb.Layouts do
     <header class="navbar px-4 sm:px-6 lg:px-8">
       <div class="flex-1">
         <a href="/" class="flex w-fit items-center gap-2 font-semibold">
-          <.icon name="hero-sparkles" class="size-6 text-warning" /> Caçador de Shiny
+          <.icon name="hero-sparkles" class="size-6 text-warning" /> Shiny Hunter
         </a>
       </div>
       <div class="flex-none">
