@@ -1,0 +1,13 @@
+services:
+  shiny_hunter:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      # Optional: keeps the signing key stable across restarts.
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
+      # Uncomment both lines below to enable map and species selection with
+      # your own FireRed (USA) v1.0 ROM placed at ./rom/firered.gba.
+      # FIRERED_ROM: /rom/firered.gba
+    # volumes:
+    #   - ./rom:/rom:ro

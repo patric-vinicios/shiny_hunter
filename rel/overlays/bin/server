@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+cd -P -- "$(dirname -- "$0")"
+
+# Shiny Hunter has no accounts or stored sessions, so a key generated at boot
+# is enough for a local run. Set SECRET_KEY_BASE to keep it across restarts.
+if [ -z "${SECRET_KEY_BASE:-}" ]; then
+  SECRET_KEY_BASE="$(head -c 48 /dev/urandom | base64 | tr -d '\n')"
+  export SECRET_KEY_BASE
+fi
+
+PHX_SERVER=true exec ./shiny_hunter start
